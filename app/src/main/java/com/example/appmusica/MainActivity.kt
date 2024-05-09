@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import com.example.appmusica.AppConstant.Companion.CURRENT_SONG_INDEX
+import com.example.appmusica.AppConstant.Companion.IS_PLAYING
 import com.example.appmusica.AppConstant.Companion.LOG_MAIN_ACTIVITY
 import com.example.appmusica.AppConstant.Companion.MEDIA_PLAYER_POSITION
 import com.example.appmusica.databinding.ActivityMainBinding
@@ -46,7 +47,9 @@ class MainActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
         Log.i(LOG_MAIN_ACTIVITY, "onStart()")
-        mediaPlayer = MediaPlayer.create(this, R.raw.pp_remix)
+        if (mediaPlayer == null) {
+            mediaPlayer = MediaPlayer.create(this, currentSong.audioResId)
+        }
         mediaPlayer?.seekTo(position)
         if (isPlaying)
             mediaPlayer?.start()
@@ -70,7 +73,7 @@ class MainActivity : AppCompatActivity() {
             position = mediaPlayer!!.currentPosition
 
         mediaPlayer?.pause()
-        isPlaying = false
+       // isPlaying = false
 
     }
 
@@ -100,7 +103,7 @@ class MainActivity : AppCompatActivity() {
      * *****************CICLO DE VIDA ****************************
      */
 
-    override fun onSaveInstanceState(outState: Bundle) {
+   /* override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putInt(MEDIA_PLAYER_POSITION, position)
     }
@@ -113,6 +116,27 @@ class MainActivity : AppCompatActivity() {
         mediaPlayer?.seekTo(position)
         mediaPlayer?.start()
 
+    }*/
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putInt(MEDIA_PLAYER_POSITION, position)
+        outState.putInt(CURRENT_SONG_INDEX, currentSongIndex)
+        outState.putBoolean(IS_PLAYING, isPlaying)
+    }
+
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        super.onRestoreInstanceState(savedInstanceState)
+        position = savedInstanceState.getInt(MEDIA_PLAYER_POSITION)
+        currentSongIndex = savedInstanceState.getInt(CURRENT_SONG_INDEX)
+        currentSong = AppConstant.songs[currentSongIndex]
+       mediaPlayer = MediaPlayer.create(this, currentSong.audioResId)
+        isPlaying = savedInstanceState.getBoolean(IS_PLAYING)
+        if (isPlaying) {
+            mediaPlayer?.seekTo(position)
+            mediaPlayer?.start()
+        }
+        updateUISongs()
     }
 
     private fun updateUISongs() {
