@@ -4,6 +4,7 @@ import android.media.MediaPlayer
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import com.example.appmusica.AppConstant.Companion.CURRENT_SONG_INDEX
 import com.example.appmusica.AppConstant.Companion.LOG_MAIN_ACTIVITY
 import com.example.appmusica.AppConstant.Companion.MEDIA_PLAYER_POSITION
 import com.example.appmusica.databinding.ActivityMainBinding
@@ -106,8 +107,12 @@ class MainActivity : AppCompatActivity() {
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
         super.onRestoreInstanceState(savedInstanceState)
-        // Restore the current position from the saved state
         position = savedInstanceState.getInt(MEDIA_PLAYER_POSITION)
+        currentSongIndex = savedInstanceState.getInt(CURRENT_SONG_INDEX)
+        currentSong = AppConstant.songs[currentSongIndex]
+        mediaPlayer?.seekTo(position)
+        mediaPlayer?.start()
+
     }
 
     private fun updateUISongs() {

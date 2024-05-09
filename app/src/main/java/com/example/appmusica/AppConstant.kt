@@ -12,6 +12,8 @@ class AppConstant {
 
         const val LOG_MAIN_ACTIVITY = "MainActivityReproductor"
         const val MEDIA_PLAYER_POSITION = "mpPosition"
+        const val CURRENT_SONG_INDEX = "indiceCancion"
+
         val songs = listOf(
             Song("Pretty please Remix - Dua Lipa", R.raw.pp_remix, R.drawable.pretty_please),
             Song("Summertime Sadness Remix - Lana del Rey", R.raw.lr_ss, R.drawable.lr_ss),
