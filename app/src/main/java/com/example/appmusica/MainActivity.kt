@@ -9,6 +9,8 @@ import com.example.appmusica.AppConstant.Companion.IS_PLAYING
 import com.example.appmusica.AppConstant.Companion.LOG_MAIN_ACTIVITY
 import com.example.appmusica.AppConstant.Companion.MEDIA_PLAYER_POSITION
 import com.example.appmusica.databinding.ActivityMainBinding
+import android.os.Handler
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -29,7 +31,6 @@ class MainActivity : AppCompatActivity() {
 
         currentSong = AppConstant.songs[currentSongIndex]
 
-
         savedInstanceState?.let {
             position = it.getInt(MEDIA_PLAYER_POSITION)
         }
@@ -39,7 +40,7 @@ class MainActivity : AppCompatActivity() {
         binding.playPauseButton.setOnClickListener { playOrPauseMusic() }
 
         binding.playNextButton.setOnClickListener { playNextSong() }
-        binding.playPreviousButton.setOnClickListener{ playPreviousSong() }
+        binding.playPreviousButton.setOnClickListener { playPreviousSong() }
 
 
     }
@@ -54,16 +55,28 @@ class MainActivity : AppCompatActivity() {
         if (isPlaying)
             mediaPlayer?.start()
 
+        // Configurar el valor inicial del Slider
+        mediaPlayer?.let {
+            binding.slider?.value = it.currentPosition.toFloat()
+            binding.slider?.valueFrom = 0F
+            binding.slider?.valueTo = it.duration.toFloat()
+        }
+        updateSeekBar()
+
     }
 
     override fun onResume() {
         super.onResume()
         Log.i(LOG_MAIN_ACTIVITY, "onResume()")
         mediaPlayer?.seekTo(position)
+
         if (isPlaying) {
             mediaPlayer?.start()
+            updateSeekBar()
             isPlaying = true
         }
+
+        // Iniciar la actualización continua del Slider
     }
 
     override fun onPause() {
@@ -73,7 +86,7 @@ class MainActivity : AppCompatActivity() {
             position = mediaPlayer!!.currentPosition
 
         mediaPlayer?.pause()
-       // isPlaying = false
+        // isPlaying = false
 
     }
 
@@ -96,27 +109,12 @@ class MainActivity : AppCompatActivity() {
         super.onDestroy()
         Log.i(LOG_MAIN_ACTIVITY, "onDestroy()")
         //mediaPlayer?.release()
-       // mediaPlayer = null
+        // mediaPlayer = null
     }
 
     /**
      * *****************CICLO DE VIDA ****************************
      */
-
-   /* override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        outState.putInt(MEDIA_PLAYER_POSITION, position)
-    }
-
-    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
-        super.onRestoreInstanceState(savedInstanceState)
-        position = savedInstanceState.getInt(MEDIA_PLAYER_POSITION)
-        currentSongIndex = savedInstanceState.getInt(CURRENT_SONG_INDEX)
-        currentSong = AppConstant.songs[currentSongIndex]
-        mediaPlayer?.seekTo(position)
-        mediaPlayer?.start()
-
-    }*/
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
@@ -130,7 +128,7 @@ class MainActivity : AppCompatActivity() {
         position = savedInstanceState.getInt(MEDIA_PLAYER_POSITION)
         currentSongIndex = savedInstanceState.getInt(CURRENT_SONG_INDEX)
         currentSong = AppConstant.songs[currentSongIndex]
-       mediaPlayer = MediaPlayer.create(this, currentSong.audioResId)
+        mediaPlayer = MediaPlayer.create(this, currentSong.audioResId)
         isPlaying = savedInstanceState.getBoolean(IS_PLAYING)
         if (isPlaying) {
             mediaPlayer?.seekTo(position)
@@ -154,6 +152,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         isPlaying = !isPlaying
+        updateSeekBar()
     }
 
 
@@ -179,5 +178,35 @@ class MainActivity : AppCompatActivity() {
         updateUISongs()
     }
 
+    private fun updateSeekBar() {
+        /*mediaPlayer?.let { player ->
+            binding.slider?.value = player.currentPosition.toFloat()
+            if (player.isPlaying) {
+                Handler().postDelayed({ updateSeekBar() }, 1000) // Actualiza cada segundo
+            }
+        }*/
 
+        mediaPlayer?.let { player ->
+            val currentPosition = player.currentPosition
+            val totalTime = player.duration
+            val currentMinutes = currentPosition / 1000 / 60
+            val currentSeconds = currentPosition / 1000 % 60
+            val totalMinutes = totalTime / 1000 / 60
+            val totalSeconds = totalTime / 1000 % 60
+
+            val currentTimeStr = String.format("%02d:%02d", currentMinutes, currentSeconds)
+            val totalTimeStr = String.format("%02d:%02d", totalMinutes, totalSeconds)
+
+            binding.currentTimeTextView?.text = currentTimeStr
+            binding.totalTimeTextView?.text = totalTimeStr
+
+            binding.slider?.value = currentPosition.toFloat()
+
+            if (isPlaying) {
+                Handler().postDelayed({ updateSeekBar() }, 1000) // Actualiza cada segundo
+            }
+        }
+
+
+    }
 }
